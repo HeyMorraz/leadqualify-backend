@@ -1,0 +1,62 @@
+services:
+  postgres:
+    image: postgres:16
+    container_name: leadqualify-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  n8n:
+    image: n8nio/n8n:latest
+    container_name: leadqualify-n8n
+    restart: unless-stopped
+    ports:
+      - "7890:5678"
+    environment:
+      DB_TYPE: postgresdb
+      DB_POSTGRESDB_HOST: postgres
+      DB_POSTGRESDB_PORT: 5432
+      DB_POSTGRESDB_DATABASE: ${POSTGRES_DB}
+      DB_POSTGRESDB_USER: ${POSTGRES_USER}
+      DB_POSTGRESDB_PASSWORD: ${POSTGRES_PASSWORD}
+      N8N_HOST: localhost
+      N8N_PORT: 5678
+      WEBHOOK_URL: http://localhost:7890/
+    depends_on:
+      - postgres
+    volumes:
+      - n8n_data:/home/node/.n8n
+
+  nocodb:
+    image: nocodb/nocodb:latest
+    container_name: leadqualify-nocodb
+    restart: unless-stopped
+    ports:
+      - "8088:8080"
+    environment:
+      NC_DB: "pg://postgres:5432?u=${POSTGRES_USER}&p=${POSTGRES_PASSWORD}&d=${POSTGRES_DB}"
+    depends_on:
+      - postgres
+    volumes:
+      - nocodb_data:/usr/app/data
+
+  qdrant:
+    image: qdrant/qdrant:latest
+    container_name: leadqualify-qdrant
+    restart: unless-stopped
+    ports:
+      - "6444:6333"
+    volumes:
+      - qdrant_data:/qdrant/storage
+
+volumes:
+  postgres_data:
+  n8n_data:
+  nocodb_data:
+  qdrant_data:
