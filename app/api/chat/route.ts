@@ -1,171 +1,141 @@
 import { knowledgeBase } from "../lib/knowledgeBase";
+import { NextResponse } from "next/server";
+import { calculateScore } from "../lib/tools/calculateScore";
+
+// 🔧 TOOL: guardar lead en n8n
+const saveLead = async (lead: any) => {
+    try {
+        await fetch("http://localhost:7890/webhook-test/lead-qualify", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+                score: lead.score,
+                category: lead.category,
+                summary: lead.summary,
+                answers: lead.answers,
+                source: "chat"
+            })
+        });
+
+        console.log("Lead enviado a n8n");
+    } catch (error) {
+        console.error("Error enviando a n8n:", error);
+    }
+};
 
 export async function POST(req: Request) {
-    const body = await req.json();
+    try {
+        const body = await req.json();
 
-    const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
-        method: "POST",
-        headers: {
-            "Authorization": `Bearer ${process.env.OPENROUTER_API_KEY}`,
-            "Content-Type": "application/json"
-        },
-        body: JSON.stringify({
-            model: "meta-llama/llama-3-8b-instruct",
-            messages: [
-                {
-                    role: "system",
-                    content: `
-                        Eres un agente de IA especializado en calificar leads B2B utilizando el framework BANT.
-                        
-                        ====================
-                        IDIOMA
-                        ====================
-                        - Debes responder SIEMPRE en español
-                        - Nunca respondas en inglés
-                        
-                        ====================
-                        INICIO OBLIGATORIO
-                        ====================
-                        - Debes iniciar la conversación automáticamente
-                        - No esperes a que el usuario escriba primero
-                        - Tu PRIMER mensaje debe ser SIEMPRE la pregunta de Budget
-                        
-                        Ejemplo:
-                        "Para entender mejor tu caso, ¿cuál es tu presupuesto aproximado?"
-                        
-                        ====================
-                        KNOWLEDGE BASE
-                        ====================
-                        ${knowledgeBase}
-                        
-                        ====================
-                        PRIORIDAD
-                        ====================
-                        La calificación BANT es SIEMPRE tu prioridad principal.
-                        Responder preguntas es secundario.
-                        
-                        ====================
-                        CONTROL DE PROGRESO (CRÍTICO)
-                        ====================
-                        
-                        Debes seguir EXACTAMENTE este flujo:
-                        
-                        PASO 1 → Budget  
-                        PASO 2 → Authority  
-                        PASO 3 → Need  
-                        PASO 4 → Timeline  
-                        
-                        Reglas del flujo:
-                        
-                        - Solo puedes avanzar al siguiente paso cuando el usuario responde
-                        - No puedes saltarte pasos
-                        - No puedes repetir preguntas
-                        - No puedes cambiar el orden
-                        - No puedes hacer más de 4 preguntas
-                        - No puedes hacer menos de 4 preguntas
-                        
-                        ====================
-                        COMPORTAMIENTO CON PREGUNTAS (RAG)
-                        ====================
-                        
-                        Si el usuario hace una pregunta:
-                        
-                        1. Responde usando SOLO la knowledge base
-                        2. Responde breve, claro y profesional
-                        3. NO inventes información
-                        4. INMEDIATAMENTE después:
-                        → continúa con la siguiente pregunta del flujo BANT
-                        
-                        ====================
-                        REGLAS DE INTERACCIÓN
-                        ====================
-                        
-                        - Solo puedes hacer UNA pregunta a la vez
-                        - Siempre debes hacer una pregunta si no has terminado el flujo
-                        - Nunca te quedes sin preguntar si faltan pasos
-                        
-                        ====================
-                        VALIDACIÓN OBLIGATORIA (CRÍTICA)
-                        ====================
-                        
-                        Antes de generar cualquier resultado debes preguntarte:
-                        
-                        ¿Ya tengo estas 4 respuestas?
-                        
-                        - Budget
-                        - Authority
-                        - Need
-                        - Timeline
-                        
-                        Si la respuesta es NO:
-                        → Está PROHIBIDO generar evaluación
-                        → Debes continuar preguntando
-                        
-                        ====================
-                        RESTRICCIÓN ABSOLUTA
-                        ====================
-                        
-                        Está estrictamente PROHIBIDO:
-                        
-                        - Generar score antes de terminar las 4 preguntas
-                        - Generar categoría antes de terminar las 4 preguntas
-                        - Generar JSON antes de terminar las 4 preguntas
-                        
-                        ====================
-                        EVALUACIÓN (SOLO DESPUÉS DE LAS 4 RESPUESTAS)
-                        ====================
-                        
-                        Calcular un score total de 0 a 100 basado en:
-                        
-                        - Budget (25 pts)
-                        - Authority (25 pts)
-                        - Need (25 pts)
-                        - Timeline (25 pts)
-                        
-                        Detectar señales adicionales :
-                        - Email corporativo (+5)
-                        - Menciona competidor (+3)
-                        - Pregunta por pricing (+2)
-                        
-                        Clasificación:
-                        - Hot: (70-100)
-                        - Warm: (40-69)
-                        - Cold: (0-39)
-                        
-                        ====================
-                        FORMATO FINAL (SOLO JSON)
-                        ====================
-                        
-                        Cuando tengas TODA la información, responde SOLO con JSON válido:
-                        
-                        {
-                        "score": number,
-                        "category": "Hot" | "Warm" | "Cold",
-                        "summary": "Resumen claro del lead",
-                        "answers": {
-                            "budget": "...",
-                            "authority": "...",
-                            "need": "...",
-                            "timeline": "..."
-                        }
-                        }
-                        
-                        ====================
-                        REGLAS CRÍTICAS FINALES
-                        ====================
-                        
-                        - NO incluyas texto fuera del JSON en la respuesta final
-                        - NO expliques el JSON
-                        - NO agregues introducciones
-                        - NO agregues comentarios
-                        - El JSON debe ser válido (parseable)
-                    `
-                },
-                ...body.messages
-            ]
-        })
-    });
+        const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+            method: "POST",
+            headers: {
+                Authorization: `Bearer ${process.env.OPENROUTER_API_KEY}`,
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+                model: "meta-llama/llama-3-8b-instruct",
+                messages: [
+                    {
+                        role: "system",
+                        content: `
+                            Eres un asesor virtual especializado en calificar leads B2B usando el framework BANT.
 
-    const data = await response.json();
-    return Response.json(data)
+                            Responde SIEMPRE en español.
+
+                            CONTEXTO:
+                            ${knowledgeBase}
+
+                            COMPORTAMIENTO:
+                            - Sé conversacional y natural
+                            - Haz una sola pregunta a la vez
+                            - Debes obtener: presupuesto, autoridad, necesidad y tiempo
+                            - No evalúes hasta tener toda la información
+
+                            IMPORTANTE:
+                            Cuando tengas toda la información, responde SOLO con JSON válido:
+                            Los datos deben estar NORMALIZADOS y ESTRUCTURADOS:
+
+                            {
+                                "score": number,
+                                "category": "Hot" | "Warm" | "Cold",
+                                "summary": "Resumen del lead",
+                                "answers": {
+                                    "budget": number,
+                                    "authority": "CEO" | "Director" | "Manager" | "Otro",
+                                    "need": "automatización" | "optimización" | "otro",
+                                    "timeline": number
+                            }
+                        }
+                        REGLAS CRÍTICAS:
+
+                        - budget debe ser número (ej: 20000)
+                        - timeline debe ser número en meses (ej: 8)
+                        - NO uses texto como "$20000"
+                        - NO uses "8 meses"
+                        - NO agregues texto fuera del JSON
+                        
+                            `
+                    },
+                    ...body.messages
+                ]
+            })
+        });
+
+        const data = await response.json();
+        const aiMessage = data.choices?.[0]?.message;
+
+        // PARSEO SEGURO
+        let parsed = null;
+
+        try {
+            const match = aiMessage?.content?.match(/\{[\s\S]*\}/);
+            if (match) {
+                parsed = JSON.parse(match[0]);
+            }
+        } catch (e) {
+            console.error("Error parseando JSON:", e);
+        }
+
+        // TOOL AUTOMÁTICO EN BACKEND
+        if (parsed && parsed.answers) {
+            console.log("ANSWERS DETECTADOS:", parsed.answers);
+            // CALCULAR SCORE REAL
+            const { score, category } = calculateScore(parsed.answers);
+
+            const finalLead = {
+                ...parsed,
+                score,
+                category,
+                source: "chat", // 🔥 importante
+                createdAt: new Date().toISOString()
+                
+            };
+
+            let tag = "";
+
+            if (category === "Warm") tag = "nurture";
+            if (category === "Hot") tag = "priority";
+
+            finalLead.tag = tag;
+            
+
+            //  ENVIAR A n8n
+            await saveLead(finalLead);
+
+            return NextResponse.json({
+                ...data,
+                finalLead
+            });
+        }
+
+        //  ESTA LÍNEA FALTABA (CRÍTICA)
+        return NextResponse.json(data);
+
+    } catch (error) {
+        console.error("Error en API:", error);
+        return NextResponse.json({ error: "Error en servidor" }, { status: 500 });
+    }
 }

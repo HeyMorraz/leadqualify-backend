@@ -3,6 +3,8 @@
 import { useState, useEffect, useRef } from "react";
 import LeadResult from "./LeadResult";
 
+
+
 export default function ChatWidget() {
     const [messages, setMessages] = useState<any[]>([]);
     const [input, setInput] = useState("");
@@ -42,7 +44,8 @@ export default function ChatWidget() {
         });
 
         const data = await res.json();
-        const aiMessage = data.choices[0].message;
+        const aiMessage = data.choices?.[0]?.message;
+        const finalLead = data.finalLead;
 
         let parsed = null;
 
@@ -50,7 +53,7 @@ export default function ChatWidget() {
             const match = aiMessage.content.match(/\{[\s\S]*\}/);
             if (match) {
                 //parsed = JSON.parse(match[0]);
-                 let jsonString = match[0];
+                let jsonString = match[0];
 
                 // limpiar saltos de línea problemáticos
                 jsonString = jsonString.replace(/\n/g, " ");
@@ -65,8 +68,8 @@ export default function ChatWidget() {
             console.error("Error parseando JSON:", e);
         }
 
-        if (parsed && parsed.score !== undefined) {
-            setResult(parsed);
+        if (finalLead) {
+            setResult(finalLead);
             return;
         }
 

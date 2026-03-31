@@ -5,7 +5,7 @@ export default function Home() {
    <main className="min-h-screen bg-gray-50 flex flex-col items-center justify-center px-6">
     {/*TIULO*/}
     <h1 className="text-4xl fount-bold text-center mb-6">
-      Califica tus leads automáticamente con IA
+      AQUI VA EL FORMULARIO
     </h1>
     {/*DESCRIPCIÓN*/}
     <p className="text-lg text-gray-600 text-center max-w-xl mb-8">

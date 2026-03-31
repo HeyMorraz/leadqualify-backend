@@ -13,9 +13,9 @@ export default function LeadResult({ result }: any) {
       
       {/* Estado */}
       <div className={`inline-block px-3 py-1 rounded-full text-sm font-semibold ${getColor()}`}>
-        {result.category === "Hot" && "🔥 Un asesor te contactará pronto"}
-        {result.category === "Warm" && "⚡ Te mantendremos informado con más contenido"}
-        {result.category === "Cold" && "❄️ Gracias por tu interés. Podemos ayudarte más adelante"}
+        {result.category === "Hot" && "Un asesor te contactará pronto"}
+        {result.category === "Warm" && " Te mantendremos informado con más contenido"}
+        {result.category === "Cold" && "Gracias por tu interés. Podemos ayudarte más adelante"}
       </div>
 
       {/* Score */}
