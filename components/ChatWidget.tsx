@@ -1,107 +1,124 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import LeadResult from "./LeadResult";
 
-
+type ChatMessage = {
+  role: "user" | "assistant";
+  content: string;
+};
 
 export default function ChatWidget() {
-    const [messages, setMessages] = useState<any[]>([]);
-    const [input, setInput] = useState("");
-    const [result, setResult] = useState<any>(null)
-    const hasStarted = useRef(false)
-    useEffect(() => {
-        if (hasStarted.current) return;
-        hasStarted.current = true
-        sendMessage("start")
-    }, [])
+  const [messages, setMessages] = useState<ChatMessage[]>([]);
+  const [input, setInput] = useState("");
+  const [result, setResult] = useState<any>(null);
+  const hasStarted = useRef(false);
 
-    const sendMessage = async (customMessage?: string) => {
-        const messageToSend = customMessage ?? input;
+  useEffect(() => {
+    if (hasStarted.current) return;
+    hasStarted.current = true;
+    void sendMessage("start");
+  }, []);
 
-        if (!messageToSend) return;
+  const sendMessage = async (customMessage?: string) => {
+    const messageToSend = customMessage ?? input.trim();
 
-        const userMessage = { role: "user", content: messageToSend };
+    if (!messageToSend) return;
 
-        const updatedMessages = [...messages, userMessage];
-
-        // 1. Actualizar UI
-        setMessages(updatedMessages);
-        setInput("");
-
-        // 2. Llamar API FUERA del setState
-        await sendToAPI(updatedMessages);
-    };
-    const sendToAPI = async (messagesToSend: any[]) => {
-        const res = await fetch("/api/chat", {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json"
-            },
-            body: JSON.stringify({
-                messages: messagesToSend
-            })
-        });
-
-        const data = await res.json();
-        const aiMessage = data.choices?.[0]?.message;
-        const finalLead = data.finalLead;
-
-        let parsed = null;
-
-        try {
-            const match = aiMessage.content.match(/\{[\s\S]*\}/);
-            if (match) {
-                //parsed = JSON.parse(match[0]);
-                let jsonString = match[0];
-
-                // limpiar saltos de línea problemáticos
-                jsonString = jsonString.replace(/\n/g, " ");
-
-                // limpiar comillas mal formadas
-                jsonString = jsonString.replace(/(\w)"(\w)/g, "$1'$2");
-
-                parsed = JSON.parse(jsonString);
-
-            }
-        } catch (e) {
-            console.error("Error parseando JSON:", e);
-        }
-
-        if (finalLead) {
-            setResult(finalLead);
-            return;
-        }
-
-        setMessages((prev) => [...prev, aiMessage]);
+    const userMessage: ChatMessage = {
+      role: "user",
+      content: messageToSend,
     };
 
-    return (
-        <div className="fixed bottom-4 right-4 w-80 bg-white shadow-xl rounded-xl p-4">
-            {/*MENSAJES*/}
-            <div className="h-64 overflow-y-auto mb-2">
-                {messages.map((msg, i) => (
-                    <div key={i} className="mb-5">
-                        <strong>{msg.role === 'assistant' ? 'Asistente' : 'Usuario'}:</strong>{msg.content === "start" ? "Iniciar" : msg.content}
-                    </div>
-                ))}
-            </div>
-            <input
-                className="w-full border p-2 rounded"
-                value={input}
-                onChange={(e) => setInput(e.target.value)}
-                placeholder="Escribe aquí..."
-            />
+    const updatedMessages = [...messages, userMessage];
 
-            <button
-                onClick={() => sendMessage()}
-                className="mt-2 w-full bg-black text-white p-2 rounded"
-            >
-                Enviar
-            </button>
-            <div className="mt-4">
-                {result && <LeadResult result={result} />}
-            </div>
-        </div>
-    )
+    setMessages(updatedMessages);
+    setInput("");
+
+    await sendToAPI(updatedMessages);
+  };
+
+  const sendToAPI = async (messagesToSend: ChatMessage[]) => {
+    try {
+      const res = await fetch("/api/chat", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          messages: messagesToSend,
+        }),
+      });
+
+      if (!res.ok) {
+        throw new Error(`Request failed with status ${res.status}`);
+      }
+
+      const data = await res.json();
+      console.log("CHAT API RESPONSE:", data);
+      console.log("API response:", data);
+
+     const aiMessage = data?.aiMessage;
+      const finalLead = data?.finalLead;
+
+      if (finalLead) {
+        setResult(finalLead);
+        return;
+      }
+
+      if (!aiMessage || typeof aiMessage.content !== "string") {
+        console.error("AI message is missing or invalid:", aiMessage);
+        return;
+      }
+
+      try {
+        const match = aiMessage.content.match(/\{[\s\S]*\}/);
+
+        if (match) {
+          let jsonString = match[0];
+
+          jsonString = jsonString.replace(/\n/g, " ");
+          jsonString = jsonString.replace(/(\w)"(\w)/g, "$1'$2");
+
+          const parsed = JSON.parse(jsonString);
+          console.log("Parsed JSON:", parsed);
+        }
+      } catch (e) {
+        console.error("Error parsing JSON:", e);
+      }
+
+      setMessages((prev) => [...prev, aiMessage]);
+    } catch (error) {
+      console.error("Error calling chat API:", error);
+    }
+  };
+
+  return (
+    <div className="fixed bottom-4 right-4 w-80 rounded-xl bg-white p-4 shadow-xl">
+      <div className="mb-2 h-64 overflow-y-auto">
+        {messages.map((msg, i) => (
+          <div key={i} className="mb-5">
+            <strong>{msg.role === "assistant" ? "Asistente" : "Usuario"}:</strong>{" "}
+            {msg.content === "start" ? "Iniciar" : msg.content}
+          </div>
+        ))}
+      </div>
+
+      <input
+        className="w-full rounded border p-2"
+        value={input}
+        onChange={(e) => setInput(e.target.value)}
+        placeholder="Escribe aquí..."
+      />
+
+      <button
+        onClick={() => void sendMessage()}
+        className="mt-2 w-full rounded bg-black p-2 text-white"
+      >
+        Enviar
+      </button>
+
+      <div className="mt-4">{result && <LeadResult result={result} />}</div>
+    </div>
+  );
 }
