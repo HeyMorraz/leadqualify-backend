@@ -1,0 +1,100 @@
+volumes:
+  n8n_ai_kit_storage:
+  postgres_ai_kit_storage:
+  qdrant_ai_kit_storage:
+  nocodb_ai_kit_storage:
+
+networks:
+  ai_kit:
+
+x-n8n: &service-n8n
+  image: n8nio/n8n:latest
+  networks: ['ai_kit']
+  env_file:
+    - path: .env
+      required: true
+  environment:
+    - DB_TYPE=postgresdb
+    - DB_POSTGRESDB_HOST=postgres
+    - DB_POSTGRESDB_PORT=5432
+    - DB_POSTGRESDB_DATABASE=${POSTGRES_DB}
+    - DB_POSTGRESDB_USER=${POSTGRES_USER}
+    - DB_POSTGRESDB_PASSWORD=${POSTGRES_PASSWORD}
+    - N8N_DIAGNOSTICS_ENABLED=false
+    - N8N_PERSONALIZATION_ENABLED=false
+    - N8N_ENCRYPTION_KEY=${N8N_ENCRYPTION_KEY}
+    - N8N_USER_MANAGEMENT_JWT_SECRET=${N8N_USER_MANAGEMENT_JWT_SECRET}
+    - N8N_DEFAULT_BINARY_DATA_MODE=${N8N_DEFAULT_BINARY_DATA_MODE}
+    - N8N_PORT=5678
+    - N8N_PROTOCOL=${N8N_PROTOCOL}
+    - N8N_HOST=0.0.0.0
+    - N8N_LISTEN_ADDRESS=0.0.0.0
+    - N8N_EDITOR_BASE_URL=${N8N_EDITOR_BASE_URL}
+    - WEBHOOK_URL=${WEBHOOK_URL}
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    hostname: postgres
+    container_name: ai_kit_postgres
+    networks: ['ai_kit']
+    restart: unless-stopped
+    env_file:
+      - path: .env
+        required: true
+    environment:
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - POSTGRES_DB=${POSTGRES_DB}
+    ports:
+      - "${POSTGRES_PORT}:5432"
+    volumes:
+      - postgres_ai_kit_storage:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -h localhost -U ${POSTGRES_USER} -d ${POSTGRES_DB}']
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  n8n:
+    <<: *service-n8n
+    hostname: n8n
+    container_name: ai_kit_n8n
+    restart: unless-stopped
+    ports:
+      - "${N8N_EXTERNAL_PORT}:5678"
+    volumes:
+      - n8n_ai_kit_storage:/home/node/.n8n
+      - ./shared:/data/shared
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  qdrant:
+    image: qdrant/qdrant:latest
+    hostname: qdrant
+    container_name: ai_kit_qdrant
+    networks: ['ai_kit']
+    restart: unless-stopped
+    ports:
+      - "${QDRANT_PORT}:6333"
+    volumes:
+      - qdrant_ai_kit_storage:/qdrant/storage
+
+  nocodb:
+    image: nocodb/nocodb:latest
+    hostname: nocodb
+    container_name: ai_kit_nocodb
+    networks: ['ai_kit']
+    restart: unless-stopped
+    env_file:
+      - path: .env
+        required: true
+    environment:
+      - NC_PORT=8080
+      - NC_PUBLIC_URL=${NOCODB_PUBLIC_URL}
+      - NC_AUTH_JWT_SECRET=${NOCODB_JWT_SECRET}
+    ports:
+      - "${NOCODB_PORT}:8080"
+    volumes:
+      - nocodb_ai_kit_storage:/usr/app/data
