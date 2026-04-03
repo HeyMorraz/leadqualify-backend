@@ -1,18 +1,18 @@
 const beneficios = [
   {
-    titulo: "Calificación inteligente",
+    titulo: "Evaluación guiada",
     descripcion:
-      "Guía a los prospectos mediante un proceso estructurado y recopila la información correcta.",
+      "Responde paso a paso y obtén una visión más clara sobre la necesidad actual de tu empresa.",
   },
   {
-    titulo: "Scoring basado en BANT",
+    titulo: "Análisis según tu contexto",
     descripcion:
-      "Evalúa la calidad del lead usando presupuesto, autoridad, necesidad y tiempo.",
+      "Tomamos en cuenta tu presupuesto, etapa actual y prioridad para ofrecerte una orientación más útil.",
   },
   {
-    titulo: "Listo para automatización",
+    titulo: "Próximos pasos más claros",
     descripcion:
-      "Prepara leads para flujos de seguimiento y priorización comercial.",
+      "Descubre si vale la pena avanzar ahora, qué tan preparado está tu negocio y cuál podría ser el siguiente paso.",
   },
 ];
 

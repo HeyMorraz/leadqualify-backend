@@ -2,19 +2,24 @@ import Link from "next/link";
 
 export default function HeroSection() {
   return (
-    <section className="px-6 pb-16 pt-20">
+    <section
+      id="evaluacion"
+      className="px-6 pb-20 pt-24 md:pb-24 md:pt-28"
+    >
       <div className="mx-auto flex max-w-5xl flex-col items-center text-center">
         <span className="rounded-full border border-slate-200 bg-white px-4 py-1 text-sm font-medium text-slate-600 shadow-sm">
-          Precalificación inteligente de leads B2B
+          Evaluación inteligente para empresas B2B
         </span>
 
         <h1 className="mt-6 max-w-4xl text-4xl font-bold tracking-tight text-slate-900 md:text-6xl">
-          Califica mejores leads con IA y scoring inteligente
+          Descubre si esta solución encaja con tu empresa
         </h1>
 
-        <p className="mt-6 max-w-2xl text-lg leading-8 text-slate-600">
-          Captura información de prospectos, evalúa intención y detecta
-          oportunidades de mayor valor antes de enviarlas al equipo de ventas.
+        <p className="mt-6 max-w-3xl text-lg leading-8 text-slate-600">
+          Responde unas preguntas y conoce qué tan preparada está tu empresa
+          para dar el siguiente paso. Analizamos tu necesidad, presupuesto y
+          etapa actual para ofrecerte una orientación inicial más clara y
+          precisa.
         </p>
 
         <div className="mt-8 flex flex-col gap-3 sm:flex-row">
@@ -33,10 +38,10 @@ export default function HeroSection() {
           </Link>
         </div>
 
-        <div className="mt-8 flex flex-wrap items-center justify-center gap-x-4 gap-y-2 text-sm text-slate-500">
-          <span>✓ Calificación automática B2B</span>
-          <span>✓ Scoring basado en BANT</span>
-          <span>✓ Leads listos para ventas</span>
+        <div className="mt-8 flex flex-wrap items-center justify-center gap-x-5 gap-y-2 text-sm text-slate-500">
+          <span>✓ Evaluación rápida</span>
+          <span>✓ Orientación inicial</span>
+          <span>✓ Próximos pasos más claros</span>
         </div>
       </div>
     </section>
