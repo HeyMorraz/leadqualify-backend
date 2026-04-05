@@ -4,7 +4,7 @@ import { calculateScore } from "../lib/tools/calculateScore";
 
 const saveLead = async (lead: any) => {
   try {
-    await fetch("http://localhost:7890/webhook-test/lead-qualify", {
+    await fetch("https://testnikguai.app.n8n.cloud/webhook-test/lead-qualify", { //http://localhost:7890/webhook-test/lead-qualify
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -18,9 +18,8 @@ const saveLead = async (lead: any) => {
       }),
     });
 
-    console.log("Lead enviado a n8n");
   } catch (error) {
-    console.error("Error enviando a n8n:", error);
+    //console.error("Error enviando a n8n:", error);
   }
 };
 

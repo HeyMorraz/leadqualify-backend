@@ -1,5 +1,5 @@
 export const saveLead = async (lead: any) => {
-  await fetch("https://localhost:7890/webhook/lead-qualify", {
+  await fetch("https://testnikguai.app.n8n.cloud/webhook-test/lead-qualify", {
     method: "POST",
     headers: {
       "Content-Type": "application/json"
@@ -12,5 +12,4 @@ export const saveLead = async (lead: any) => {
       summary: lead.summary
     })
   });
-  console.log("ENVIANDO A N8N", lead);
 };

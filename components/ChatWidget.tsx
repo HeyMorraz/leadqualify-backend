@@ -55,8 +55,7 @@ export default function ChatWidget() {
       }
 
       const data = await res.json();
-      console.log("CHAT API RESPONSE:", data);
-      console.log("API response:", data);
+
 
      const aiMessage = data?.aiMessage;
       const finalLead = data?.finalLead;
@@ -81,7 +80,7 @@ export default function ChatWidget() {
           jsonString = jsonString.replace(/(\w)"(\w)/g, "$1'$2");
 
           const parsed = JSON.parse(jsonString);
-          console.log("Parsed JSON:", parsed);
+          
         }
       } catch (e) {
         console.error("Error parsing JSON:", e);
