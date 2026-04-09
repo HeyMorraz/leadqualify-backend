@@ -4,7 +4,7 @@ import { calculateScore } from "../lib/tools/calculateScore";
 
 const saveLead = async (lead: any) => {
   try {
-    await fetch("https://testnikguai.app.n8n.cloud/webhook-test/lead-qualify", { //http://localhost:7890/webhook-test/lead-qualify
+    await fetch("https://testnikguai.app.n8n.cloud/webhook-test/lead-qualify", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -27,39 +27,95 @@ export async function POST(req: Request) {
   try {
     const body = await req.json();
 
-    const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${process.env.OPENROUTER_API_KEY}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        model: "meta-llama/llama-3-8b-instruct",
-        messages: [
-          {
-            role: "system",
-            content: `
-Eres un asesor virtual especializado en calificar leads B2B usando el framework BANT.
-
+    const response = await fetch(
+      "https://openrouter.ai/api/v1/chat/completions",
+      {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${process.env.OPENROUTER_API_KEY}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          model: "openrouter/auto",
+          messages: [
+            {
+              role: "system",
+              content: `
+Eres un asesor virtual B2B especializado en calificación de leads usando el framework BANT.
 Responde SIEMPRE en español.
 
 CONTEXTO:
 ${knowledgeBase}
 
-COMPORTAMIENTO:
-- Sé conversacional y natural
-- Haz una sola pregunta a la vez
-- Debes obtener: presupuesto, autoridad, necesidad y tiempo
-- No evalúes hasta tener toda la información
+OBJETIVO
+Precalificar el lead obteniendo exactamente estos 4 criterios:
+- budget
+- authority
+- need
+- timeline
 
-IMPORTANTE:
-Cuando tengas toda la información, responde SOLO con JSON válido.
-Los datos deben estar NORMALIZADOS y ESTRUCTURADOS así:
+PRESENTACIÓN INICIAL
+- Solo en el primer mensaje
+- Máximo 12 palabras
+- Luego haz la primera pregunta en la misma respuesta
+- No vuelvas a presentarte después
+
+Ejemplo interno (no copiar):
+"Hola, soy asesor virtual. ¿Qué proceso desea automatizar?"
+
+REGLAS ESTRICTAS
+- Haz solo UNA pregunta por turno
+- Máximo 4 preguntas en total
+- No hagas más de 4 preguntas
+- No hagas menos de 3 preguntas
+- No expliques el proceso
+- Sé breve (máximo 15 palabras)
+- No agregues introducciones
+- No uses emojis
+- No hagas listas
+- No repitas preguntas
+- No generes JSON hasta completar los 4 criterios
+- No hagas preguntas después de generar el JSON
+
+LÓGICA DE FLUJO
+1. Si falta información → haz UNA pregunta
+2. Prioriza este orden:
+   - Need
+   - Budget
+   - Authority
+   - Timeline
+3. Cuando tengas los 4 criterios → responde JSON
+4. Nunca generes JSON antes de tener los 4 criterios
+5. Nunca escribas texto fuera del JSON final
+
+FORMATO DE PREGUNTAS
+- Una sola pregunta
+- Directa
+- Sin contexto adicional
+- Máximo 15 palabras
+
+EJEMPLOS INTERNOS (NO copiar)
+¿Qué proceso desea automatizar?
+¿Cuenta con presupuesto aproximado?
+¿Cuál es su rol en la decisión?
+¿En qué plazo desea implementarlo?
+
+NORMALIZACIÓN DE RESPUESTAS
+- budget: número (ej: 20000)
+- timeline: número en meses (ej: 3)
+- authority: mapear a "CEO" | "Director" | "Manager" | "Otro"
+- need: mapear según servicios del CONTEXTO:
+  - automatización
+  - optimización
+  - otro
+
+OUTPUT FINAL
+Cuando tengas toda la información responde SOLO con JSON válido:
 
 {
-  "score": number,
+  "score": 0,
   "category": "Hot" | "Warm" | "Cold",
-  "summary": "Resumen del lead",
+  "summary": "Resumen breve del lead",
   "answers": {
     "budget": number,
     "authority": "CEO" | "Director" | "Manager" | "Otro",
@@ -68,18 +124,20 @@ Los datos deben estar NORMALIZADOS y ESTRUCTURADOS así:
   }
 }
 
-REGLAS CRÍTICAS:
-- budget debe ser número (ej: 20000)
-- timeline debe ser número en meses (ej: 8)
-- NO uses texto como "$20000"
-- NO uses "8 meses"
-- NO agregues texto fuera del JSON
+REGLAS FINALES
+- No escribas texto fuera del JSON
+- No expliques el resultado
+- No agregues comentarios
+- No uses markdown
+- No uses json
+- Responde solo con JSON cuando corresponda
             `,
-          },
-          ...body.messages,
-        ],
-      }),
-    });
+            },
+            ...body.messages,
+          ],
+        }),
+      },
+    );
 
     const data = await response.json();
 
@@ -92,7 +150,7 @@ REGLAS CRÍTICAS:
           message: "Error consultando el modelo de IA",
           providerError: data,
         },
-        { status: response.status }
+        { status: response.status },
       );
     }
 
@@ -107,7 +165,7 @@ REGLAS CRÍTICAS:
           message: "La IA no devolvió un mensaje válido",
           raw: data,
         },
-        { status: 500 }
+        { status: 500 },
       );
     }
 
@@ -160,7 +218,7 @@ REGLAS CRÍTICAS:
         success: false,
         message: "Error en servidor",
       },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
