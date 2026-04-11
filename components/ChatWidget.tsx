@@ -62,6 +62,14 @@ export default function ChatWidget() {
 
       if (finalLead) {
         setResult(finalLead);
+        setMessages((prev) => [
+          ...prev,
+          {
+            role: "assistant",
+            content: finalLead.message,
+          },
+        ]);
+
         return;
       }
 
@@ -80,7 +88,7 @@ export default function ChatWidget() {
           jsonString = jsonString.replace(/(\w)"(\w)/g, "$1'$2");
 
           const parsed = JSON.parse(jsonString);
-          
+
         }
       } catch (e) {
         console.error("Error parsing JSON:", e);
@@ -117,9 +125,8 @@ export default function ChatWidget() {
       <button
         onClick={() => void sendMessage()}
         disabled={isInputEmpty}
-        className={`mt-2 w-full rounded p-2 text-white ${
-          isInputEmpty ? "bg-gray-400 cursor-not-allowed" : "bg-black"
-        }`}
+        className={`mt-2 w-full rounded p-2 text-white ${isInputEmpty ? "bg-gray-400 cursor-not-allowed" : "bg-black"
+          }`}
       >
         Enviar
       </button>

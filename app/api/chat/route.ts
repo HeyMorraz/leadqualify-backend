@@ -212,12 +212,23 @@ REGLAS DEL OUTPUT
     if (parsed && parsed.answers && parsed.contact) {
       const { score, category } = calculateScore(parsed.answers);
 
+      let categoryMessage = "";
+
+      if (category === "Hot") {
+        categoryMessage = "Muchas gracias por la información. Un asesor de nuestro equipo se pondrá en contacto contigo muy pronto para acompañarte en el siguiente paso.";
+      } else if (category === "Warm") {
+        categoryMessage = "Muchas gracias por compartir esta información. Te estaremos enviando contenido y detalles que pueden ayudarte a avanzar en tu proceso.";
+      } else {
+        categoryMessage = "Muchas gracias por tu interés. Ha sido un gusto conversar contigo y quedamos a disposición para cuando lo necesites.";
+      }
+
       const finalLead: any = {
         ...parsed,
         score,
         category,
         source: "chat",
         createdAt: new Date().toISOString(),
+        message: categoryMessage, // 👈 ESTO FALTABA
       };
 
       let tag = "";
