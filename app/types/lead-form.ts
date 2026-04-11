@@ -1,77 +1,40 @@
-export type BudgetStatus = "assigned" | "exploring" | "none" | "";
-export type AuthorityLevel = "decision_maker" | "recommender" | "researcher" | "";
-export type NeedType =
-  | "automation"
-  | "optimization"
-  | "lead_generation"
-  | "cost_reduction"
-  | "other"
-  | "";
-export type TimelineOption = "1_3" | "3_6" | "later" | "researching" | "";
+export type NeedType = "automatización" | "optimización" | "otro" | "";
+export type AuthorityLevel = "CEO" | "Director" | "Manager" | "Otro" | "";
+export type TimelineOption = "1" | "3" | "6" | "12" | "";
 
 export interface LeadFormAnswers {
   name: string;
-  email: string;
   company: string;
-  industry: string;
-  companySize: string;
+  email: string;
+  phone: string;
 
-  needType: NeedType;
-  needDescription: string;
-
-  budgetStatus: BudgetStatus;
-  budgetRange: string;
-
-  authorityLevel: AuthorityLevel;
-  decisionMakerRole: string;
-
+  need: NeedType;
+  budget: string;
+  authority: AuthorityLevel;
   timeline: TimelineOption;
-
-  mentionsCompetitor: boolean;
-  asksForPricing: boolean;
 }
 
-export interface LeadScoreBreakdown {
-  budget: number;
-  authority: number;
-  need: number;
-  timeline: number;
-  bonus: number;
-}
-
-export type LeadCategory = "Hot" | "Warm" | "Cold";
-
-export interface LeadScoreResult {
-  totalScore: number;
-  category: LeadCategory;
-  breakdown: LeadScoreBreakdown;
+export interface FormStepOption {
+  label: string;
+  value: string;
 }
 
 export interface FormStep {
   id: string;
-  title: string;
-  description?: string;
-  fields: Array<keyof LeadFormAnswers>;
+  field: keyof LeadFormAnswers;
+  question: string;
+  inputType: "text" | "email" | "tel" | "number" | "options";
+  placeholder?: string;
+  options?: FormStepOption[];
 }
 
 export const initialLeadFormAnswers: LeadFormAnswers = {
   name: "",
-  email: "",
   company: "",
-  industry: "",
-  companySize: "",
-
-  needType: "",
-  needDescription: "",
-
-  budgetStatus: "",
-  budgetRange: "",
-
-  authorityLevel: "",
-  decisionMakerRole: "",
-
+  email: "",
+  phone: "",
+  need: "",
+  budget: "",
+  authority: "",
   timeline: "",
-
-  mentionsCompetitor: false,
-  asksForPricing: false,
 };

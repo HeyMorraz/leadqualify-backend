@@ -12,36 +12,6 @@ export default function Header() {
             Digital Innovations
           </span>
         </Link>
-
-        <nav className="hidden items-center justify-center gap-8 md:flex">
-          <a
-            href="#beneficios"
-            className="text-sm font-medium text-slate-600 transition hover:text-slate-900"
-          >
-            Beneficios
-          </a>
-          <a
-            href="#evaluacion"
-            className="text-sm font-medium text-slate-600 transition hover:text-slate-900"
-          >
-            Evaluación
-          </a>
-          <a
-            href="#footer"
-            className="text-sm font-medium text-slate-600 transition hover:text-slate-900"
-          >
-            Contacto
-          </a>
-        </nav>
-
-        <div className="flex justify-end">
-          <Link
-            href="/formulario"
-            className="inline-flex items-center justify-center rounded-xl bg-slate-900 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-slate-800"
-          >
-            Empezar
-          </Link>
-        </div>
       </div>
     </header>
   );
