@@ -55,14 +55,21 @@ export default function ChatWidget() {
       }
 
       const data = await res.json();
-      console.log("CHAT API RESPONSE:", data);
-      console.log("API response:", data);
 
-     const aiMessage = data?.aiMessage;
+
+      const aiMessage = data?.aiMessage;
       const finalLead = data?.finalLead;
 
       if (finalLead) {
         setResult(finalLead);
+        setMessages((prev) => [
+          ...prev,
+          {
+            role: "assistant",
+            content: finalLead.message,
+          },
+        ]);
+
         return;
       }
 
@@ -81,7 +88,7 @@ export default function ChatWidget() {
           jsonString = jsonString.replace(/(\w)"(\w)/g, "$1'$2");
 
           const parsed = JSON.parse(jsonString);
-          console.log("Parsed JSON:", parsed);
+
         }
       } catch (e) {
         console.error("Error parsing JSON:", e);
@@ -93,19 +100,23 @@ export default function ChatWidget() {
     }
   };
 
+  const isInputEmpty = !input || input.trim() === "";
+
   return (
     <div className="fixed bottom-4 right-4 w-80 rounded-xl bg-white p-4 shadow-xl">
       <div className="mb-2 h-64 overflow-y-auto">
         {messages.map((msg, i) => (
           <div key={i} className="mb-5">
-            <strong>{msg.role === "assistant" ? "Asistente" : "Usuario"}:</strong>{" "}
+            <strong>
+              {msg.role === "assistant" ? "Asistente" : "Usuario"}:
+            </strong>{" "}
             {msg.content === "start" ? "Iniciar" : msg.content}
           </div>
         ))}
       </div>
 
       <input
-        className="w-full rounded border p-2"
+        className="w-full rounded border p-2 font-normal"
         value={input}
         onChange={(e) => setInput(e.target.value)}
         placeholder="Escribe aquí..."
@@ -113,12 +124,14 @@ export default function ChatWidget() {
 
       <button
         onClick={() => void sendMessage()}
-        className="mt-2 w-full rounded bg-black p-2 text-white"
+        disabled={isInputEmpty}
+        className={`mt-2 w-full rounded p-2 text-white ${isInputEmpty ? "bg-gray-400 cursor-not-allowed" : "bg-black"
+          }`}
       >
         Enviar
       </button>
 
-      <div className="mt-4">{result && <LeadResult result={result} />}</div>
+      {/* <div className="mt-4">{result && <LeadResult result={result} />}</div> */}
     </div>
   );
 }
